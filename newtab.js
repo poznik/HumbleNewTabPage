@@ -16,6 +16,7 @@ function render(node, target) {
 	var text = node.title || node.name || '';
 	if (!text && node.title === null) text = node.url || '';
 	a.innerText = text;
+	a.node = node;
 
 	if (node.tooltip) a.title = node.tooltip;
 	setClass(a, node);
@@ -60,7 +61,7 @@ function render(node, target) {
 	// folder
 	if (node.children) {
 		// render children
-		if (a.open || getConfig('remember_open') && localStorage.getItem('open.' + node.id)) {
+		if (a.open || openFolders[node.id] || getConfig('remember_open') && localStorage.getItem('open.' + node.id)) {
 			setClass(a, node, true);
 			a.open = true;
 			getChildrenFunction(node)(function(result) {
@@ -74,6 +75,10 @@ function render(node, target) {
 
 	} else if (node.id == 'apps')
 		enableDragFolder(node, a);
+	else if (url && isEditable(node)) {
+		addLinkHandlers(node, a);
+		enableDragBookmark(node, a);
+	}
 
 	target.appendChild(li);
 	return li;
@@ -309,7 +314,178 @@ function getMenuItems(node) {
 				openLink({ url: 'chrome://bookmarks/?id=' + node.id }, 1);
 			}
 		});
+	if (isEditable(node)) {
+		items.push(null);// spacer
+		items.push({
+			label: 'Rename folder...',
+			action: function() {
+				editBookmark(node);
+			}
+		});
+		items.push({
+			label: 'Delete folder...',
+			action: function() {
+				deleteBookmark(node);
+			}
+		});
+	}
 	return items;
+}
+
+// enables context menu for given bookmark link
+function addLinkHandlers(node, a) {
+	var items = [
+		{
+			label: 'Open in new tab',
+			action: function() {
+				openLink(node, 1);
+			}
+		},
+		{
+			label: 'Open in background tab',
+			action: function() {
+				openLink(node, 2);
+			}
+		},
+		{
+			label: 'Open in new window',
+			action: function() {
+				chrome.windows.create({ url: node.url });
+			}
+		},
+		{
+			label: 'Open in incognito window',
+			action: function() {
+				chrome.windows.create({ url: node.url, incognito: true });
+			}
+		},
+		{
+			label: 'Copy link address',
+			action: function() {
+				navigator.clipboard.writeText(node.url);
+			}
+		},
+		null,// spacer
+		{
+			label: 'Edit...',
+			action: function() {
+				editBookmark(node);
+			}
+		},
+		{
+			label: 'Delete...',
+			action: function() {
+				deleteBookmark(node);
+			}
+		}
+	];
+
+	a.oncontextmenu = function(event) {
+		renderMenu(items, event.pageX, event.pageY);
+		return false;
+	};
+}
+
+// returns true if id belongs to a real bookmark or folder
+function isBookmarkId(id) {
+	return Number(id) > 0;
+}
+
+// returns true if node can be renamed, moved and deleted
+function isEditable(node) {
+	return isBookmarkId(node.id) && node.parentId != null && node.parentId !== '0' && !node.unmodifiable;
+}
+
+// shows a dialog to rename a folder or edit a bookmark
+function editBookmark(node) {
+	var isFolder = !node.url;
+	showDialog({
+		heading: isFolder ? 'Rename folder' : 'Edit bookmark',
+		name: node.title || '',
+		url: isFolder ? null : node.url,
+		ok: 'Save'
+	}, function(values) {
+		var changes = { title: values.name };
+		if (!isFolder)
+			changes.url = values.url;
+		chrome.bookmarks.update(node.id, changes, onBookmarkError);
+	});
+}
+
+// asks for confirmation and deletes a bookmark or folder
+function deleteBookmark(node) {
+	if (node.url) {
+		showDialog({
+			heading: 'Delete bookmark',
+			message: 'Delete "' + (node.title || node.url) + '"?',
+			ok: 'Delete'
+		}, function() {
+			chrome.bookmarks.remove(node.id, onBookmarkError);
+		});
+		return;
+	}
+	chrome.bookmarks.getSubTree(node.id, function(result) {
+		if (!result)
+			return;
+		var count = countBookmarks(result[0]);
+		showDialog({
+			heading: 'Delete folder',
+			message: 'Delete folder "' + node.title + '"' +
+				(count ? ' and ' + count + (count == 1 ? ' item' : ' items') + ' inside it' : '') + '?',
+			ok: 'Delete'
+		}, function() {
+			chrome.bookmarks.removeTree(node.id, onBookmarkError);
+		});
+	});
+}
+
+// counts all bookmarks and folders inside given node
+function countBookmarks(node) {
+	var count = 0;
+	if (node.children)
+		for (var i = 0; i < node.children.length; i++)
+			count += 1 + countBookmarks(node.children[i]);
+	return count;
+}
+
+// reports failed bookmark operations
+function onBookmarkError() {
+	if (chrome.runtime.lastError)
+		alert(chrome.runtime.lastError.message);
+}
+
+// shows a modal dialog and passes entered values to callback if confirmed
+function showDialog(options, callback) {
+	var dialog = document.getElementById('dialog');
+	var message = document.getElementById('dialog_message');
+	var name = document.getElementById('dialog_name');
+	var url = document.getElementById('dialog_url');
+	var ok = document.getElementById('dialog_ok');
+
+	document.getElementById('dialog_heading').innerText = options.heading;
+	message.innerText = options.message || '';
+	message.hidden = !options.message;
+	name.value = options.name || '';
+	name.parentNode.hidden = options.name == null;
+	url.value = options.url || '';
+	url.required = options.url != null;
+	url.parentNode.hidden = options.url == null;
+	ok.innerText = options.ok || 'OK';
+
+	document.getElementById('dialog_cancel').onclick = function() {
+		dialog.close('cancel');
+	};
+	dialog.onclose = function() {
+		if (dialog.returnValue == 'ok')
+			callback({ name: name.value, url: url.value.trim() });
+	};
+
+	dialog.returnValue = '';
+	dialog.showModal();
+	if (options.name != null)
+		name.select();
+	else
+		ok.focus();
 }
 
 // wraps click handler for menu items
@@ -410,15 +586,179 @@ function enableDragFolder(node, a) {
 	a.draggable = true;
 	a.ondragstart = function(event) {
 		dragIds = [node.id];
+		// folders can also be moved into other folders
+		if (isEditable(node)) {
+			dragNode = node;
+			dragElement = a;
+		}
 		event.stopPropagation();
 		event.dataTransfer.effectAllowed = 'move copy';
 		this.classList.add('dragstart');
 	};
 	a.ondragend = function(event) {
 		dragIds = null;
+		dragNode = null;
+		dragElement = null;
 		this.classList.remove('dragstart');
 		clearDropTarget();
+		cancelSpringOpen();
 	};
+}
+
+var dragNode; // bookmark node being moved between folders
+var dragElement;
+
+// enable drag and drop of bookmark link
+function enableDragBookmark(node, a) {
+	if (getConfig('lock'))
+		return;
+
+	a.draggable = true;
+	a.ondragstart = function(event) {
+		dragNode = node;
+		dragElement = a;
+		event.stopPropagation();
+		event.dataTransfer.effectAllowed = 'all';
+		this.classList.add('dragstart');
+	};
+	a.ondragend = function(event) {
+		dragNode = null;
+		dragElement = null;
+		this.classList.remove('dragstart');
+		clearDropTarget();
+		cancelSpringOpen();
+	};
+}
+
+// gets where the dragged bookmark would be moved to, or null
+function getBookmarkDrop(event) {
+	if (!dragNode)
+		return null;
+
+	// find hovered link, whole row counts
+	var a = event.target;
+	if (a.tagName == 'LI')
+		a = a.firstChild;
+	while (a && a.tagName != 'A') {
+		if (a.id == 'main')
+			return null;
+		a = a.parentNode;
+	}
+	if (!a || !a.node || a === dragElement)
+		return null;
+	// folder can't be moved into itself or its children
+	if (dragElement && dragElement.parentNode.contains(a))
+		return null;
+
+	var node = a.node;
+	var li = a.parentNode;
+	var parent = getParentFolder(li);
+	var inFolder = parent && isBookmarkId(parent.id);
+
+	// drop into empty folder
+	if (node.id == 'empty')
+		return inFolder ? { a: a, li: li, node: node, mode: 'into', parentId: parent.id } : null;
+
+	var rect = a.getBoundingClientRect();
+	var pos = (event.clientY - rect.top) / rect.height;
+	var isFolder = node.children && isBookmarkId(node.id) && !node.unmodifiable;
+	var mode;
+	if (isFolder)
+		mode = pos < .25 ? 'before' : (pos > .75 && !a.open ? 'after' : 'into');
+	else
+		mode = pos < .5 ? 'before' : 'after';
+
+	// can only reorder inside real folders (not column layout or recent lists)
+	if (mode != 'into' && !(inFolder && node.index != null)) {
+		// dragged folders fall back to column layout
+		if (!isFolder || dragIds)
+			return null;
+		mode = 'into';
+	}
+
+	if (mode == 'into')
+		return { a: a, li: li, node: node, mode: mode, parentId: node.id };
+	return {
+		a: a,
+		li: li,
+		node: node,
+		mode: mode,
+		parentId: node.parentId,
+		index: node.index + (mode == 'after' ? 1 : 0)
+	};
+}
+
+// gets bookmark folder that contains given list item
+function getParentFolder(li) {
+	var parent = li.parentNode.parentNode;
+	if (!parent)
+		return null;
+	// skip animation wrapper
+	if (parent.tagName == 'DIV' && !parent.classList.contains('column'))
+		parent = parent.parentNode;
+	if (parent.tagName == 'LI')
+		return parent.firstChild.node;
+	// single folder column shows folder contents only
+	if (parent.classList.contains('column')) {
+		var ids = columns[getDropX(parent)];
+		if (ids && ids.length == 1 && !getConfig('show_root'))
+			return { id: ids[0] };
+	}
+	return null;
+}
+
+// highlights bookmark drop position
+function showBookmarkDrop(drop) {
+	clearDropTarget();
+	var color = getConfig('font_color');
+	if (drop.mode == 'into') {
+		dropTarget = drop.a;
+		drop.a.style.boxShadow = 'inset 0 0 0 2px ' + color;
+		springOpen(drop.node, drop.a);
+	} else {
+		dropTarget = drop.li;
+		if (drop.mode == 'before') {
+			drop.li.style.borderTop = 'solid 2px ' + color;
+			drop.li.style.margin = '-2px 0 0 0';
+		} else {
+			drop.li.style.borderBottom = 'solid 2px ' + color;
+			drop.li.style.margin = '0 0 -2px 0';
+		}
+		cancelSpringOpen();
+	}
+}
+
+// moves dragged bookmark to drop position
+function moveBookmark(node, drop) {
+	var destination = { parentId: drop.parentId };
+	if (drop.index != null)
+		destination.index = drop.index;
+	chrome.bookmarks.move(node.id, destination, onBookmarkError);
+}
+
+var springTarget = null;
+var springTimeout = null;
+
+// opens closed folder after hovering over it while dragging
+function springOpen(node, a) {
+	if (springTarget === a)
+		return;
+	cancelSpringOpen();
+	if (a.open || !node.children)
+		return;
+	springTarget = a;
+	springTimeout = setTimeout(function() {
+		springTimeout = null;
+		if (!a.open)
+			toggle(node, a);
+	}, 700);
+}
+
+function cancelSpringOpen() {
+	if (springTimeout)
+		clearTimeout(springTimeout);
+	springTimeout = null;
+	springTarget = null;
 }
 
 // init drag and drop handlers
@@ -435,6 +775,19 @@ function enableDragDrop() {
 	main.ondragover = function(event) {
 		event.preventDefault();
 		event.dataTransfer.dropEffect = 'move';
+		// move bookmark between folders
+		var drop = getBookmarkDrop(event);
+		if (drop) {
+			showBookmarkDrop(drop);
+			return false;
+		}
+		cancelSpringOpen();
+		if (!dragIds) {
+			clearDropTarget();
+			event.dataTransfer.dropEffect = 'none';
+			return false;
+		}
+		// change column layout
 		// highlight drop target
 		var target = getDropTarget(event);
 		if (target) {
@@ -468,6 +821,14 @@ function enableDragDrop() {
 
 	main.ondrop = function(event) {
 		event.stopPropagation();
+		cancelSpringOpen();
+
+		var drop = getBookmarkDrop(event);
+		if (drop) {
+			clearDropTarget();
+			moveBookmark(dragNode, drop);
+			return false;
+		}
 
 		var target = getDropTarget(event);
 		if (!target)
@@ -554,6 +915,7 @@ function clearDropTarget() {
 	if (dropTarget) {
 		dropTarget.style.border = null;
 		dropTarget.style.margin = null;
+		dropTarget.style.boxShadow = null;
 	}
 	dropTarget = null;
 }
@@ -709,6 +1071,9 @@ function getIcon(node) {
 	return icon;
 }
 
+// folders opened on this page, kept open when bookmarks are refreshed
+var openFolders = {};
+
 // toggle folder open state
 function toggle(node, a) {
 	var isopen = a.open;
@@ -717,6 +1082,7 @@ function toggle(node, a) {
 	if (isopen) {
 		// close folder
 		localStorage.removeItem('open.' + node.id);
+		delete openFolders[node.id];
 		if (a.nextSibling){
 			// auto-close child folders
 			if (getConfig('auto_close')) {
@@ -733,6 +1099,7 @@ function toggle(node, a) {
 	} else {
 		// open folder
 		localStorage.setItem('open.' + node.id, true);
+		openFolders[node.id] = true;
 		// auto-close sibling folders
 		if (getConfig('auto_close')) {
 			var siblings = a.parentNode.parentNode.children;
@@ -1611,3 +1978,26 @@ if (location.search === '?options')
 // refresh recently closed
 if (chrome.sessions)
 	chrome.sessions.onChanged.addListener(refreshClosed);
+
+var refreshTimeout = null;
+
+// re-render columns after bookmarks change, keeping page height to avoid scroll jumps
+function refreshBookmarks() {
+	if (refreshTimeout)
+		clearTimeout(refreshTimeout);
+	refreshTimeout = setTimeout(function() {
+		refreshTimeout = null;
+		var main = document.getElementById('main');
+		main.style.minHeight = main.offsetHeight + 'px';
+		loadColumns();
+		setTimeout(function() {
+			main.style.minHeight = null;
+		}, 500);
+	}, 100);
+}
+
+// refresh bookmarks
+['onCreated', 'onRemoved', 'onChanged', 'onMoved', 'onChildrenReordered', 'onImportEnded'].forEach(function(name) {
+	if (chrome.bookmarks[name])
+		chrome.bookmarks[name].addListener(refreshBookmarks);
+});
