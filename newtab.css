@@ -1,13 +1,39 @@
+/* Палитра и метрики оформления «Карточки». Настройки перекрывают их
+   правилами :root { --… } из getStyle() в newtab.js. */
+:root {
+	--bg: #F3F3F1;
+	--card: #FFFFFF;
+	--text: #26272B;
+	--hover-bg: #EBF1FB;
+	--hover-text: #1C1D20;
+	--accent: #3B6FD8;
+	--fs: 14px;
+	--fw: 400;
+	--row: 32px;
+	--radius: 8px;
+	/* производные */
+	--muted: color-mix(in srgb, var(--text) 68%, var(--card));
+	--edge: color-mix(in srgb, var(--text) 9%, var(--bg));
+	--line: color-mix(in srgb, var(--text) 8%, var(--card));
+	--soft: color-mix(in srgb, var(--text) 4%, var(--card));
+	--chip: color-mix(in srgb, var(--text) 6%, var(--card));
+	--gap: calc(var(--row) * .5625);
+	--pad: calc(var(--row) * .375);
+	--font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, "Helvetica Neue", sans-serif;
+	--chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 2.5 8 6l-3.5 3.5'/%3E%3C/svg%3E");
+}
 body {
-	background-color: #FFF;
+	background-color: var(--bg);
 	background-attachment: fixed;
 	background-position: left top;
 	width: 100vw;
 	margin: 0 auto;
 	overflow-x: hidden;
-	font-family: sans-serif;
+	font-family: var(--font);
 	font-size: 62.5%;
 	line-height: 1;
+	color: var(--text);
+	-webkit-font-smoothing: antialiased;
 }
 #main {
 	width: 80%;
@@ -22,118 +48,254 @@ body {
 	padding: 0;
 	list-style: none;
 }
-#main a + ul, #main a + div {
-	padding-left: 24px;
+.column {
+	display: inline-block;
+	vertical-align: top;
+	box-sizing: border-box;
+	padding: 0 calc(var(--gap) / 2) 20px;
+	min-height: 300px;
+	white-space: normal;
 }
+.column > ul {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap);
+}
+
+/* карточка: папка верхнего уровня или колонка с содержимым одной папки */
+.column > ul > li, .column > div {
+	box-sizing: border-box;
+	padding: var(--pad) calc(var(--pad) - 2px);
+	background-color: var(--card);
+	border: 1px solid var(--edge);
+	border-radius: calc(var(--radius) + 6px);
+}
+/* свёрнутая папка верхнего уровня — плашка */
+.column > ul > li:has(> a:not(.open)) {
+	padding-top: 4px;
+	padding-bottom: 4px;
+}
+
+/* строка: закладка */
 #main a {
 	box-sizing: border-box;
-	max-width: 100%;
-	display: inline-block;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	font-size: 1.6em;
-	line-height: 2;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	height: var(--row);
+	padding: 0 8px;
+	font-size: var(--fs);
+	font-weight: var(--fw);
+	line-height: 1.3;
 	text-decoration: none;
-	color: #555;
-	padding: 0 .8em;
-	border-radius: .2em;
+	color: var(--text);
+	border-radius: var(--radius);
 	cursor: pointer;
 	transition-property: color, background-color, box-shadow, opacity;
 	transition-duration: 0.2s;
 	transition-timing-function: ease-out;
 }
 #main a:hover {
-	color: #000;
-	background-color: #E4F4FF;
-	box-shadow: 0 0 7px #57B0FF;
+	color: var(--hover-text);
+	background-color: var(--hover-bg);
+}
+#main a:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: -2px;
+}
+#main .title {
+	flex: 0 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+#main .count {
+	flex: none;
+	font-size: calc(var(--fs) * .86);
+	font-weight: 500;
+	color: var(--muted);
+	font-variant-numeric: tabular-nums;
+}
+#main a.folder:not(.open) .count {
+	display: none;
 }
 .icon {
 	display: inline-block;
+	flex: none;
 	width: 16px;
 	height: 16px;
-	margin: -3px .4em 0 0;
 	background-size: 100% 100%;
-	vertical-align: middle;
 }
-#main a:after {
-	/* workaround Chromium issue 142154 */
+#main a + ul, #main a + div {
+	padding-left: 0;
+}
+:is(#main li li li, #main .column > div li li) > a + div {
+	padding-left: 12px;
+}
+
+/* папки: шеврон вместо значка */
+#main a.folder:not(.top, .recent, .closed, .devices, .window) > .icon {
+	display: none;
+}
+#main a.folder::after {
 	content: '';
-	display: inline-block;
-	width: 2px;
-	margin-left: -2px;
+	flex: none;
+	width: 12px;
+	height: 12px;
+	margin-left: auto;
+	background-color: currentColor;
+	opacity: .5;
+	-webkit-mask: var(--chevron) center / contain no-repeat;
+	mask: var(--chevron) center / contain no-repeat;
+	transition: transform .15s ease-out, background-color .15s, opacity .15s;
 }
+#main a.folder.open::after {
+	transform: rotate(90deg);
+}
+#main a.folder:hover::after {
+	background-color: var(--accent);
+	opacity: 1;
+}
+
+/* шапка карточки */
+#main .column > ul > li > a.folder {
+	height: calc(var(--row) + 6px);
+	gap: 8px;
+	font-size: calc(var(--fs) + 1px);
+	font-weight: calc(var(--fw) + 200);
+	letter-spacing: -.01em;
+	color: var(--text);
+}
+#main .column > ul > li > a.folder.open {
+	margin-bottom: 2px;
+}
+#main .column > ul > li > a.folder:not(.open) {
+	height: calc(var(--row) + 8px);
+}
+#main .column > ul > li > a.folder:hover {
+	background-color: var(--soft);
+	color: var(--text);
+}
+
+/* открытая вложенная папка — подпись секции */
+:is(#main li li, #main .column > div li) > a.folder {
+	gap: 6px;
+	font-size: calc(var(--fs) * .79);
+	font-weight: 600;
+	letter-spacing: .07em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+:is(#main li li, #main .column > div li) > a.folder.open {
+	height: calc(var(--row) - 4px);
+}
+:is(#main li li, #main .column > div li) > a.folder .count {
+	font-size: inherit;
+	letter-spacing: 0;
+}
+:is(#main li li, #main .column > div li) > a.folder.open:hover {
+	background-color: transparent;
+	color: var(--text);
+}
+:is(#main li li, #main .column > div li):has(> a.folder.open):not(:first-child) {
+	margin-top: calc(var(--pad) * .8);
+}
+/* разделитель между секцией и закладками после неё */
+:is(#main li li, #main .column > div li):has(> a.folder.open) + li:has(> a:not(.folder)) {
+	margin-top: 6px;
+	padding-top: 6px;
+	border-top: 1px solid var(--line);
+}
+
+/* свёрнутая вложенная папка — чип */
+:is(#main li li, #main .column > div li):has(> a.folder:not(.open)) {
+	display: inline-block;
+	vertical-align: top;
+	margin: 6px 6px 2px 0;
+}
+:is(#main li li, #main .column > div li) > a.folder:not(.open) {
+	display: inline-flex;
+	height: 26px;
+	padding: 0 7px 0 8px;
+	border-radius: calc(var(--radius) - 1px);
+	background-color: var(--chip);
+}
+:is(#main li li, #main .column > div li) > a.folder:not(.open)::after {
+	width: 10px;
+	height: 10px;
+	margin-left: 0;
+	opacity: .8;
+}
+:is(#main li li, #main .column > div li) > a.folder:not(.open):hover {
+	background-color: color-mix(in srgb, var(--text) 11%, var(--card));
+	color: var(--text);
+}
+
 .wrap {
+	overflow: hidden;
 	transition-property: height, opacity;
 	transition-duration: 0.2s;
 	transition-timing-function: ease-out;
 }
-.column {
-	display: inline-block;
-	vertical-align: top;
-	box-sizing: border-box;
-	padding: 10px 0 20px 0;
-	min-height: 300px;
-}
 #main .empty {
 	opacity: 0.5;
-}
-.menu {
-	position: absolute;
-	white-space: nowrap;
-	font-size: 1.2em;
-	line-height: 2;
-	background-color: #FAFAFA;
-	border: solid 1px #999;
-	border-radius: 3px;
-	box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.3);
-}
-.menu a {
-	display: block;
-	text-decoration: none;
-	color: #000;
-	padding: 0 2em;
-	cursor: default;
-}
-.menu a:hover {
-	background-color: #E4F4FF;
-	border: solid 1px #57B0FF;
-	margin: -1px;
-	position: relative;
-}
-.menu li:first-child a {
-	border-top-left-radius: 3px;
-	border-top-right-radius: 3px;
-}
-.menu li:last-child a {
-	border-bottom-left-radius: 3px;
-	border-bottom-right-radius: 3px;
-}
-.menu hr {
-	margin: 0;
-	border: solid #CCC;
-	border-width: 1px 0 0 0;
 }
 .dragstart {
 	opacity: 0.5;
 }
+
+/* контекстное меню */
+.menu {
+	position: absolute;
+	z-index: 10;
+	white-space: nowrap;
+	font-size: 13px;
+	line-height: 28px;
+	padding: 4px;
+	color: var(--text);
+	background-color: var(--card);
+	border: 1px solid var(--edge);
+	border-radius: calc(var(--radius) + 2px);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, .12), 0 1px 3px rgba(0, 0, 0, .08);
+}
+.menu a {
+	display: block;
+	text-decoration: none;
+	color: inherit;
+	padding: 0 14px;
+	border-radius: calc(var(--radius) - 2px);
+	cursor: default;
+}
+.menu a:hover {
+	color: var(--hover-text);
+	background-color: var(--hover-bg);
+}
+.menu hr {
+	margin: 4px 6px;
+	border: solid var(--edge);
+	border-width: 1px 0 0 0;
+}
+
+/* диалог правки закладки */
 #dialog {
-	font-size: 1.4em;
-	color: #000;
-	background-color: #FAFAFA;
-	border: solid 1px #999;
-	border-radius: 3px;
-	box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.3);
-	padding: 1em 1.5em;
+	font-size: 14px;
+	color: var(--text);
+	background-color: var(--card);
+	border: 1px solid var(--edge);
+	border-radius: calc(var(--radius) + 6px);
+	box-shadow: 0 24px 60px rgba(0, 0, 0, .18);
+	padding: 20px 24px;
 	width: 30em;
 	max-width: calc(100vw - 4em);
 }
 #dialog::backdrop {
-	background-color: rgba(0, 0, 0, 0.2);
+	background-color: rgba(20, 20, 22, 0.25);
 }
 #dialog h1 {
-	font-size: 1.1em;
-	font-weight: normal;
-	margin: 0 0 1em;
+	font-size: 16px;
+	font-weight: 600;
+	margin: 0 0 16px;
 }
 #dialog p {
 	margin: 0 0 1em;
@@ -144,19 +306,28 @@ body {
 	align-items: center;
 	font-size: 1em;
 	text-align: left;
-	margin: 0 0 .6em;
+	margin: 0 0 .7em;
 }
 #dialog label span {
 	float: none;
 	width: 4em;
 	flex: none;
+	color: var(--muted);
 }
 #dialog input {
 	flex: 1;
 	width: auto;
 	margin: 0;
-	padding: .3em;
-	font-size: 1em;
+	padding: 7px 10px;
+	font: inherit;
+	color: inherit;
+	background-color: var(--card);
+	border: 1px solid color-mix(in srgb, var(--text) 18%, var(--card));
+	border-radius: calc(var(--radius) - 2px);
+}
+#dialog input:focus {
+	outline: 2px solid var(--accent);
+	outline-offset: -1px;
 }
 #dialog [hidden] {
 	display: none;
@@ -164,13 +335,30 @@ body {
 #dialog .buttons {
 	display: flex;
 	flex-direction: row-reverse;
-	margin-top: 1.2em;
+	margin-top: 1.4em;
 }
 #dialog button {
 	min-width: 6em;
-	margin-left: .5em;
-	padding: .3em 1em;
-	font-size: 1em;
+	margin-left: 8px;
+	padding: 7px 16px;
+	font: inherit;
+	font-weight: 500;
+	color: var(--text);
+	background-color: var(--card);
+	border: 1px solid color-mix(in srgb, var(--text) 18%, var(--card));
+	border-radius: calc(var(--radius) - 2px);
+	cursor: pointer;
+}
+#dialog button:hover {
+	background-color: var(--soft);
+}
+#dialog #dialog_ok {
+	color: var(--card);
+	background-color: var(--text);
+	border-color: var(--text);
+}
+#dialog #dialog_ok:hover {
+	background-color: color-mix(in srgb, var(--text) 85%, var(--card));
 }
 .hide-focus :focus {
 	outline: none;
@@ -233,14 +421,19 @@ body {
 	display: block;
 }
 #options_button {
+	top: 12px;
+	right: 12px;
 	background: transparent no-repeat center center;
 	width: 32px;
 	height: 32px;
-	opacity: 0.6;
+	border-radius: 8px;
+	opacity: 0.55;
 	cursor: pointer;
+	transition: opacity .15s, background-color .15s;
 }
 #options_button:hover {
 	opacity: 1;
+	background-color: color-mix(in srgb, var(--text) 7%, transparent);
 }
 #options_close_button {
 	color: #000;

@@ -15,7 +15,11 @@ function render(node, target) {
 
 	var text = node.title || node.name || '';
 	if (!text && node.title === null) text = node.url || '';
-	a.innerText = text;
+	// title in its own span: ellipsis works inside a flex row
+	var title = document.createElement('span');
+	title.className = 'title';
+	title.innerText = text;
+	a.appendChild(title);
 	a.node = node;
 
 	if (node.tooltip) a.title = node.tooltip;
@@ -93,6 +97,9 @@ function renderAll(nodes, target, toplevel) {
 		if (toplevel || !coords[node.id])
 			render(node, ul);
 	}
+	// number of children next to the folder name
+	if (!toplevel && target.tagName == 'LI')
+		setCount(target.firstChild, ul.childNodes.length);
 	if (ul.childNodes.length === 0)
 		render({ id: 'empty', title: '< Empty >' }, ul);
 	if (toplevel)
@@ -710,7 +717,7 @@ function getParentFolder(li) {
 // highlights bookmark drop position
 function showBookmarkDrop(drop) {
 	clearDropTarget();
-	var color = getConfig('font_color');
+	var color = getConfig('accent_color');
 	if (drop.mode == 'into') {
 		dropTarget = drop.a;
 		drop.a.style.boxShadow = 'inset 0 0 0 2px ' + color;
@@ -793,7 +800,7 @@ function enableDragDrop() {
 		if (target) {
 			clearDropTarget();
 			dropTarget = target;
-			var bordercss = 'solid 2px ' + getConfig('font_color');
+			var bordercss = 'solid 2px ' + getConfig('accent_color');
 			if (target.tagName == 'LI' || target.tagName == 'UL') {
 				if (isAbove(event.pageY, target)) {
 					target.style.borderBottom = bordercss;
@@ -927,13 +934,14 @@ function updateTooltips() {
 
 	tooltipTimeout = setTimeout(function() {
 		tooltipTimeout = null;
-		var elements = document.querySelectorAll('#main li a');
+		var elements = document.querySelectorAll('#main li a > .title');
 		for (var i = 0; i < elements.length; i++) {
 			var element = elements[i];
+			var a = element.parentNode;
 			if (element.clientWidth + 1 < element.scrollWidth) {
-				element.title = element.title || element.textContent;
-			} else if (element.title === element.textContent) {
-				element.title = '';
+				a.title = a.title || element.textContent;
+			} else if (a.title === element.textContent) {
+				a.title = '';
 			}
 		}
 	}, 100);
@@ -1024,8 +1032,11 @@ function getSubTree(id, callback) {
 function setClass(target, node, isopen) {
 	if (node.className)
 		target.classList.add(node.className);
-	if (node.children)
+	if (node.children) {
 		target.classList.add('folder');
+		target.setAttribute('role', 'button');
+		target.setAttribute('aria-expanded', isopen ? 'true' : 'false');
+	}
 	if (isopen)
 		target.classList.add('open');
 	else
@@ -1040,6 +1051,21 @@ function setClass(target, node, isopen) {
 		case 'empty':
 			target.classList.add(node.id);
 	}
+}
+
+// shows number of children after folder title
+function setCount(a, count) {
+	var span = a.getElementsByClassName('count')[0];
+	if (!count) {
+		if (span) a.removeChild(span);
+		return;
+	}
+	if (!span) {
+		span = document.createElement('span');
+		span.className = 'count';
+		a.appendChild(span);
+	}
+	span.textContent = count;
 }
 
 // gets best icon for a node
@@ -1424,20 +1450,22 @@ function refreshClosed() {
 // options : default values
 var config = {
 	font: 'Sans-serif',
-	font_size: 16,
+	font_size: 14,
 	font_weight: 400,
 	theme: 'Default',
-	font_color: '#555555',
-	background_color: '#ffffff',
-	highlight_color: '#e4f4ff',
-	highlight_font_color: '#000000',
+	font_color: '#26272b',
+	background_color: '#f3f3f1',
+	card_color: '#ffffff',
+	accent_color: '#3b6fd8',
+	highlight_color: '#ebf1fb',
+	highlight_font_color: '#1c1d20',
 	shadow_color: '#57b0ff',
 	background_image_file: '',
 	background_image: '',
 	background_align: 'left top',
 	background_repeat: 'repeat',
 	background_size: 'auto',
-	shadow_blur: 1,
+	shadow_blur: 0,
 	highlight_round: 1,
 	fade: 1,
 	spacing: 1,
@@ -1471,77 +1499,99 @@ var themes = {
 		background_color: '#ffffff',
 		highlight_color: '#3399ff',
 		highlight_font_color: '#ffffff',
-		shadow_color: '#97cbff'
+		shadow_color: '#97cbff',
+		card_color: '#ffffff',
+		accent_color: '#3399ff'
 	},
 	Dusk: {
 		font_color: '#c8b9be',
 		background_color: '#56546b',
 		highlight_color: '#494d5a',
 		highlight_font_color: '#ffd275',
-		shadow_color: '#000000'
+		shadow_color: '#000000',
+		card_color: '#615e77',
+		accent_color: '#ffd275'
 	},
 	Elegant: {
 		font_color: '#888888',
 		background_color: '#f6f6f6',
 		highlight_color: '#ffffff',
 		highlight_font_color: '#000000',
-		shadow_color: '#aaaaaa'
+		shadow_color: '#aaaaaa',
+		card_color: '#ffffff',
+		accent_color: '#555555'
 	},
 	Frosty: {
 		font_color: '#3e5e82',
 		background_color: '#e4eef3',
 		highlight_color: '#0080c0',
 		highlight_font_color: '#ffffff',
-		shadow_color: '#8080ff'
+		shadow_color: '#8080ff',
+		card_color: '#f4f8fa',
+		accent_color: '#0080c0'
 	},
 	Hacker: {
 		font_color: '#00ff00',
 		background_color: '#000000',
 		highlight_color: '#00ff00',
 		highlight_font_color: '#000000',
-		shadow_color: '#ff0000'
+		shadow_color: '#ff0000',
+		card_color: '#071207',
+		accent_color: '#00ff00'
 	},
 	Melon: {
 		font_color: '#594526',
 		background_color: '#f8ffe1',
 		highlight_color: '#ff8000',
 		highlight_font_color: '#ffff80',
-		shadow_color: '#ff80c0'
+		shadow_color: '#ff80c0',
+		card_color: '#fffff3',
+		accent_color: '#ff8000'
 	},
 	Midnight: {
 		font_color: '#bfdfff',
 		background_color: '#101827',
 		highlight_color: '#000000',
 		highlight_font_color: '#80ecff',
-		shadow_color: '#0080ff'
+		shadow_color: '#0080ff',
+		card_color: '#18233a',
+		accent_color: '#80ecff'
 	},
 	Slate: {
 		font_color: '#555555',
 		background_color: '#b7babf',
 		highlight_color: '#aaaaaa',
 		highlight_font_color: '#000000',
-		shadow_color: '#2a2a2a'
+		shadow_color: '#2a2a2a',
+		card_color: '#c9ccd0',
+		accent_color: '#2a2a2a'
 	},
 	Trees: {
 		font_color: '#cdd088',
 		background_color: '#566157',
 		highlight_color: '#4d674b',
 		highlight_font_color: '#ffff80',
-		shadow_color: '#183010'
+		shadow_color: '#183010',
+		card_color: '#606c61',
+		accent_color: '#ffff80'
 	},
 	Valentine: {
 		font_color: '#895fc2',
 		background_color: '#eae1ff',
 		highlight_color: '#ffb7f0',
 		highlight_font_color: '#f00000',
-		shadow_color: '#ffffff'
+		shadow_color: '#ffffff',
+		card_color: '#f6f1ff',
+		accent_color: '#c03fa8'
 	},
 	Warm: {
 		font_color: '#824100',
 		background_color: '#ffeedd',
 		highlight_color: '#fffae8',
 		highlight_font_color: '#800000',
-		shadow_color: '#d98764'
+		shadow_color: '#d98764',
+		card_color: '#fff7ee',
+		accent_color: '#d98764'
 	}
 };
 var theme = {};
@@ -1596,13 +1646,17 @@ function getStyle(key, value) {
 		case 'font':
 			return '#main a { font-family: "' + value + '"; }';
 		case 'font_size':
-			return '#main a { font-size: ' + (value / 10) + 'em; }';
+			return ':root { --fs: ' + value + 'px; }';
 		case 'font_weight':
-			return '#main a { font-weight: ' + value + '; }';
+			return ':root { --fw: ' + value + '; }';
 		case 'font_color':
-			return '#main a { color: ' + value + '; }';
+			return ':root { --text: ' + value + '; }';
 		case 'background_color':
-			return 'body { background-color: ' + value + '; }';
+			return ':root { --bg: ' + value + '; }';
+		case 'card_color':
+			return ':root { --card: ' + value + '; }';
+		case 'accent_color':
+			return ':root { --accent: ' + value + '; }';
 		case 'background_image':
 			return 'body { background-image: url(' + value + '); }';
 		case 'background_image_file':
@@ -1614,23 +1668,21 @@ function getStyle(key, value) {
 		case 'background_size':
 			return 'body { background-size: ' + value + '; }';
 		case 'highlight_font_color':
-			return '#main a:hover { color: ' + value + '; }';
+			return ':root { --hover-text: ' + value + '; }';
 		case 'highlight_color':
-			return '#main a:hover { background-color: ' + value + '; }';
+			return ':root { --hover-bg: ' + value + '; }';
 		case 'shadow_color':
 			return '#main a:hover { box-shadow: 0 0 ' + scale(getConfig('shadow_blur'), 7, 100) + 'px ' + value + '; }';
 		case 'shadow_blur':
 			return '#main a:hover { box-shadow: 0 0 ' + scale(value, 7, 100) + 'px ' + getConfig('shadow_color') + '; }';
 		case 'highlight_round':
-			return '#main a { border-radius: ' + scale(value, .2, 1.5) + 'em; }';
+			return ':root { --radius: ' + scale(value, 8, 16) + 'px; }';
 		case 'fade':
 			return '#main a { transition-duration: ' + scale(value, .2, 1) + 's; }';
 		case 'slide':
 			return '.wrap { transition-duration: ' + scale(value, .2, 1) + 's; }';
 		case 'spacing':
-			return '#main a { line-height: ' + scale(value, 2, 5.6, .8) + '; ' +
-							'padding-left: ' + scale(value, .8, 2, .4) + 'em; ' +
-							'padding-right: ' + scale(value, .8, 2, .4) + 'em; }';
+			return ':root { --row: ' + scale(value, 32, 56, 22) + 'px; }';
 		case 'width':
 			return '#main { width: ' + (getConfig('auto_scale') ?
 				scale(value, 80, 100, 20) + '%' :
