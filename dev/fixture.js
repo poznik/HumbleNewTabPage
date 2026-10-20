@@ -4,7 +4,7 @@
 window.HNTP_FIXTURE = {
 	version: 1,
 	tree: [
-		{ title: 'Bookmarks bar', children: [
+		{ title: 'Панель закладок', children: [
 			{ title: 'Main', children: [
 				{ title: 'Хабр', url: 'https://habr.com/' },
 				{ title: 'Википедия', url: 'https://ru.wikipedia.org/' },
@@ -64,7 +64,7 @@ window.HNTP_FIXTURE = {
 				{ title: 'Счета', url: 'https://bills.example.com/' }
 			] }
 		] },
-		{ title: 'Other bookmarks', children: [] }
+		{ title: 'Другие закладки', children: [] }
 	],
 	// колонки — по названиям папок, как их разложил владелец
 	columns: [['Main', 'Later'], ['Work'], ['AI'], ['Home']],

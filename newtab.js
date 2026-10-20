@@ -101,7 +101,7 @@ function renderAll(nodes, target, toplevel) {
 	if (!toplevel && target.tagName == 'LI')
 		setCount(target.firstChild, ul.childNodes.length);
 	if (ul.childNodes.length === 0)
-		render({ id: 'empty', title: '< Empty >' }, ul);
+		render({ id: 'empty', title: 'Пусто' }, ul);
 	if (toplevel)
 		target.appendChild(ul);
 	else {
@@ -180,7 +180,7 @@ function addFolderHandlers(node, a) {
 	if (!getConfig('lock')) {
 		items.push(null);// spacer
 		items.push({
-			label: 'Create new column',
+			label: 'Новая колонка',
 			action: function() {
 				addColumn([node.id]);
 			}
@@ -190,35 +190,35 @@ function addFolderHandlers(node, a) {
 			var pos = coords[node.id];
 			if (pos.y > 0)
 				items.push({
-					label: 'Move folder up',
+					label: 'Переместить папку вверх',
 					action: function() {
 						addRow(node.id, pos.x, pos.y - 1);
 					}
 				});
 			if (pos.y < columns[pos.x].length - 1)
 				items.push({
-					label: 'Move folder down',
+					label: 'Переместить папку вниз',
 					action: function() {
 						addRow(node.id, pos.x, pos.y + 2);
 					}
 				});
 			if (pos.x > 0)
 				items.push({
-					label: 'Move folder left',
+					label: 'Переместить папку влево',
 					action: function() {
 						addRow(node.id, pos.x - 1);
 					}
 				});
 			if (pos.x < columns.length - 1)
 				items.push({
-					label: 'Move folder right',
+					label: 'Переместить папку вправо',
 					action: function() {
 						addRow(node.id, pos.x + 1);
 					}
 				});
 			if (root.indexOf(node.id) < 0)
 				items.push({
-					label: 'Remove folder',
+					label: 'Убрать папку со страницы',
 					action: function() {
 						removeRow(pos.x, pos.y);
 					}
@@ -246,20 +246,20 @@ function addColumnHandlers(index, ul) {
 		items.push(null);// spacer
 		if (index > 0)
 			items.push({
-				label: 'Move column left',
+				label: 'Переместить колонку влево',
 				action: function() {
 					addColumn(ids, index - 1);
 				}
 			});
 		if (index < columns.length - 1)
 			items.push({
-				label: 'Move column right',
+				label: 'Переместить колонку вправо',
 				action: function() {
 					addColumn(ids, index + 2);
 				}
 			});
 		items.push({
-			label: 'Remove column',
+			label: 'Убрать колонку',
 			action: function() {
 				removeColumn(index);
 			}
@@ -267,14 +267,14 @@ function addColumnHandlers(index, ul) {
 		if (ids.length == 1) {
 			if (index > 0)
 				items.push({
-					label: 'Move folder left',
+					label: 'Переместить папку влево',
 					action: function() {
 						addRow(ids[0], index - 1);
 					}
 				});
 			if (index < columns.length - 1)
 				items.push({
-					label: 'Move folder right',
+					label: 'Переместить папку вправо',
 					action: function() {
 						addRow(ids[0], index + 1);
 					}
@@ -295,28 +295,28 @@ function addColumnHandlers(index, ul) {
 function getMenuItems(node) {
 	var items = [];
 		items.push({
-			label: 'Open all links in folder',
+			label: 'Открыть все ссылки из папки',
 			action: function() {
 				openLinks(node);
 			}
 		});
 	if (node.id == 'closed')
 		items.push({
-			label: 'Clear browsing data',
+			label: 'Очистить историю браузера',
 			action: function() {
 				openLink({ url: 'chrome://settings/clearBrowserData' }, 1);
 			}
 		});
 	if (node.id == 'devices')
 		items.push({
-			label: 'History',
+			label: 'История',
 			action: function() {
 				openLink({ url: 'chrome://history' }, 1);
 			}
 		});
 	if (Number(node.id))
 		items.push({
-			label: 'Edit bookmarks',
+			label: 'Диспетчер закладок',
 			action: function() {
 				openLink({ url: 'chrome://bookmarks/?id=' + node.id }, 1);
 			}
@@ -324,13 +324,13 @@ function getMenuItems(node) {
 	if (isEditable(node)) {
 		items.push(null);// spacer
 		items.push({
-			label: 'Rename folder...',
+			label: 'Переименовать папку…',
 			action: function() {
 				editBookmark(node);
 			}
 		});
 		items.push({
-			label: 'Delete folder...',
+			label: 'Удалить папку…',
 			action: function() {
 				deleteBookmark(node);
 			}
@@ -343,44 +343,44 @@ function getMenuItems(node) {
 function addLinkHandlers(node, a) {
 	var items = [
 		{
-			label: 'Open in new tab',
+			label: 'Открыть в новой вкладке',
 			action: function() {
 				openLink(node, 1);
 			}
 		},
 		{
-			label: 'Open in background tab',
+			label: 'Открыть в фоновой вкладке',
 			action: function() {
 				openLink(node, 2);
 			}
 		},
 		{
-			label: 'Open in new window',
+			label: 'Открыть в новом окне',
 			action: function() {
 				chrome.windows.create({ url: node.url });
 			}
 		},
 		{
-			label: 'Open in incognito window',
+			label: 'Открыть в режиме инкогнито',
 			action: function() {
 				chrome.windows.create({ url: node.url, incognito: true });
 			}
 		},
 		{
-			label: 'Copy link address',
+			label: 'Копировать адрес ссылки',
 			action: function() {
 				navigator.clipboard.writeText(node.url);
 			}
 		},
 		null,// spacer
 		{
-			label: 'Edit...',
+			label: 'Изменить…',
 			action: function() {
 				editBookmark(node);
 			}
 		},
 		{
-			label: 'Delete...',
+			label: 'Удалить…',
 			action: function() {
 				deleteBookmark(node);
 			}
@@ -407,10 +407,10 @@ function isEditable(node) {
 function editBookmark(node) {
 	var isFolder = !node.url;
 	showDialog({
-		heading: isFolder ? 'Rename folder' : 'Edit bookmark',
+		heading: isFolder ? 'Переименовать папку' : 'Изменить закладку',
 		name: node.title || '',
 		url: isFolder ? null : node.url,
-		ok: 'Save'
+		ok: 'Сохранить'
 	}, function(values) {
 		var changes = { title: values.name };
 		if (!isFolder)
@@ -423,9 +423,9 @@ function editBookmark(node) {
 function deleteBookmark(node) {
 	if (node.url) {
 		showDialog({
-			heading: 'Delete bookmark',
-			message: 'Delete "' + (node.title || node.url) + '"?',
-			ok: 'Delete'
+			heading: 'Удалить закладку',
+			message: 'Удалить «' + (node.title || node.url) + '»?',
+			ok: 'Удалить'
 		}, function() {
 			chrome.bookmarks.remove(node.id, onBookmarkError);
 		});
@@ -436,14 +436,24 @@ function deleteBookmark(node) {
 			return;
 		var count = countBookmarks(result[0]);
 		showDialog({
-			heading: 'Delete folder',
-			message: 'Delete folder "' + node.title + '"' +
-				(count ? ' and ' + count + (count == 1 ? ' item' : ' items') + ' inside it' : '') + '?',
-			ok: 'Delete'
+			heading: 'Удалить папку',
+			message: 'Удалить папку «' + node.title + '»' +
+				(count ? ' и всё, что в ней: ' + count + ' ' + plural(count, 'элемент', 'элемента', 'элементов') : '') + '?',
+			ok: 'Удалить'
 		}, function() {
 			chrome.bookmarks.removeTree(node.id, onBookmarkError);
 		});
 	});
+}
+
+// русское склонение по числу: 1 вкладка, 3 вкладки, 5 вкладок
+function plural(n, one, few, many) {
+	var mod10 = n % 10, mod100 = n % 100;
+	if (mod10 == 1 && mod100 != 11)
+		return one;
+	if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14))
+		return few;
+	return many;
 }
 
 // counts all bookmarks and folders inside given node
@@ -1001,19 +1011,19 @@ function getChildrenFunction(node) {
 function getSubTree(id, callback) {
 	switch(id) {
 		case 'top':
-			callback([{ title: 'Most visited', id: 'top', children: true}]);
+			callback([{ title: 'Часто посещаемые', id: 'top', children: true}]);
 			break;
 		case 'apps':
-			callback([{ title: 'Apps', id: 'apps', url: 'chrome://apps' }]);
+			callback([{ title: 'Приложения', id: 'apps', url: 'chrome://apps' }]);
 			break;
 		case 'recent':
-			callback([{ title: 'Recent bookmarks', id: 'recent', children: true }]);
+			callback([{ title: 'Недавние закладки', id: 'recent', children: true }]);
 			break;
 		case 'closed':
-			callback([{ title: 'Recently closed', id: 'closed', children: true }]);
+			callback([{ title: 'Недавно закрытые', id: 'closed', children: true }]);
 			break;
 		case 'devices':
-			callback([{ title: 'Other devices', id: 'devices', children: true }]);
+			callback([{ title: 'Другие устройства', id: 'devices', children: true }]);
 			break;
 		default:
 			chrome.bookmarks.getSubTree(id, function(result) {
@@ -1381,7 +1391,7 @@ function getClosed(callback) {
 					session.tab = session.window.tabs[0];
 
 				nodes.push({
-					title: session.tab ? session.tab.title : session.window.tabs.length + ' Tabs',
+					title: session.tab ? session.tab.title : session.window.tabs.length + ' ' + plural(session.window.tabs.length, 'вкладка', 'вкладки', 'вкладок'),
 					url: session.tab ? session.tab.url : null,
 					className: session.window ? 'window' : null,
 					action: function() {

@@ -328,7 +328,7 @@ body {
 }
 #dialog label span {
 	float: none;
-	width: 4em;
+	width: 5.5em;
 	flex: none;
 	color: var(--muted);
 }
