@@ -46,6 +46,15 @@ This project is licensed under the **MIT License**, see [LICENSE_MIT.txt](LICENS
 (`newtab.css`); настройки внешнего вида перекрывают их через `getStyle()`
 в `newtab.js`.
 
+Фон «символы на ветру» — `texture.js`: повтор фона экрана новой сессии
+в Claude Code (десктоп), своя реализация на WebGL2. По сетке моноширинных
+глифов идут порывы ветра; клик по пустому месту пускает волну, быстрое
+движение мыши оставляет светящийся след. Цвет глифов — `--muted`, шрифт —
+`ui-monospace`. Через 3 минуты фон гаснет и ждёт движения мыши; при
+`prefers-reduced-motion` рисуется один неподвижный кадр, при программном
+рендеринге WebGL не включается. Отключается в настройках: Appearance →
+Animation → «Symbols in background».
+
 
 Changelog
 ---------

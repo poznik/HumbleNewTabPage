@@ -1481,6 +1481,7 @@ var config = {
 	show_closed: 1,
 	show_devices: 1,
 	show_root: 0,
+	texture: 1,
 	newtab: 0,
 	remember_open: 1,
 	auto_close: 0,
@@ -1624,6 +1625,8 @@ function setConfig(key, value) {
 				showConfig(i);
 			}
 		}
+	} else if (key == 'texture') {
+		updateTexture();
 	} else if (key.substring(0,4) == 'show') {
 		var id = key.substring(5);
 		if (!value) {
@@ -1889,7 +1892,7 @@ function initSettings() {
 				var exports = document.getElementById('options_export');
 				var imports = document.getElementById('options_import');
 				var replacer = function(key, value) {
-					if (key == 'options.background_image_file' || key == 'weather.cache') {
+					if (key == 'options.background_image_file' || key == 'weather.cache' || key == 'texture.recent') {
 						return undefined;
 					}
 					return value;
@@ -1997,9 +2000,23 @@ function showOptions(show) {
 	}
 }
 
+// фон «символы на ветру» (texture.js)
+var texture = null;
+
+function updateTexture() {
+	var show = getConfig('texture') && window.HumbleTexture;
+	if (show && !texture)
+		texture = HumbleTexture.mount(document.getElementById('texture'));
+	else if (!show && texture) {
+		texture.destroy();
+		texture = null;
+	}
+}
+
 // initialize page
 loadSettings();
 loadColumns();
+updateTexture();
 
 // keyboard shortcuts
 document.addEventListener('keypress', function(event) {

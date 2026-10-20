@@ -35,6 +35,21 @@ body {
 	color: var(--text);
 	-webkit-font-smoothing: antialiased;
 }
+/* фон «символы на ветру» (texture.js): под содержимым, мышь не перехватывает */
+#texture {
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	overflow: hidden;
+	pointer-events: none;
+	contain: strict;
+	color: var(--muted);
+	font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+#texture canvas {
+	position: absolute;
+	display: block;
+}
 #main {
 	width: 80%;
 	margin: 5% auto 0;
