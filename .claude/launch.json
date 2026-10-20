@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "newtab-dev",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["dev/serve.py", "--port", "8765"],
+      "port": 8765
+    }
+  ]
+}
