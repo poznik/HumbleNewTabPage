@@ -1597,6 +1597,22 @@ var themes = {
 };
 var theme = {};
 
+// названия тем в настройках; ключи themes хранятся в options.theme как есть
+var themeNames = {
+	Default: 'По умолчанию',
+	Classic: 'Классическая',
+	Dusk: 'Сумерки',
+	Elegant: 'Элегантная',
+	Frosty: 'Морозная',
+	Hacker: 'Хакер',
+	Melon: 'Дыня',
+	Midnight: 'Полночь',
+	Slate: 'Сланец',
+	Trees: 'Лес',
+	Valentine: 'Валентинка',
+	Warm: 'Тёплая'
+};
+
 // get config value or default
 function getConfig(key) {
 	var value = localStorage.getItem('options.' + key);
@@ -1765,9 +1781,9 @@ function onChange(key, value) {
 	if (!settingsInitialized)
 		return;
 
-	// show/hide default button
+	// show/hide default button (кнопки сброса появляются в initConfig)
 	var input = document.getElementById('options_' + key);
-	if (input) {
+	if (input && input.reset) {
 		var isDefault = value == (theme.hasOwnProperty(key) ? theme[key] : config[key]);
 		input.reset.style.visibility = (isDefault ? 'hidden' : null);
 		if (input.swatch)
@@ -1822,7 +1838,7 @@ function initConfig(key) {
 				var file = event.target.files[0];
 				if (file.size > 2097152) {
 					input.value = null;
-					alert('Image must be less than 2 MB.');
+					alert('Изображение должно быть меньше 2 МБ.');
 					return false;
 				}
 				var reader = new FileReader();
@@ -1838,7 +1854,7 @@ function initConfig(key) {
 
 	var reset = document.createElement('a');
 	reset.className = 'revert';
-	reset.title = 'Reset to default';
+	reset.title = 'Вернуть значение по умолчанию';
 	reset.tabIndex = 0;
 	reset.onclick = function() {
 		setConfig(key, null);
@@ -1899,7 +1915,7 @@ function initSettings() {
 				};
 				exports.value = JSON.stringify(localStorage, replacer);
 				imports.value = '';
-				imports.placeholder = 'Paste exported settings here';
+				imports.placeholder = 'Вставьте сюда экспортированные настройки';
 				imports.onchange = function() {
 					try {
 						var imported = JSON.parse(imports.value);
@@ -1907,13 +1923,13 @@ function initSettings() {
 							localStorage.setItem(key, imported[key]);
 						}
 						imports.value = '';
-						imports.placeholder = 'Import successful!';
+						imports.placeholder = 'Настройки импортированы';
 						exports.value = JSON.stringify(localStorage, replacer);
 						loadSettings();
 						loadColumns();
 					} catch (e) {
 						imports.value = '';
-						imports.placeholder = 'Import error! Please check if your settings are valid JSON.';
+						imports.placeholder = 'Не удалось импортировать: это не похоже на JSON из экспорта';
 					}
 				};
 			}
@@ -1961,7 +1977,8 @@ function initSettings() {
 		if (select.childNodes.length === 0) {
 			for (var i in themes) {
 				var option = document.createElement('option');
-				option.innerText = i;
+				option.value = i;
+				option.innerText = themeNames[i] || i;
 				if (i == getConfig('theme'))
 					option.selected = 'selected';
 				select.appendChild(option);
@@ -1979,7 +1996,8 @@ function initSettings() {
 				for (var i = 0; i < fonts.length; i++) {
 					var font = fonts[i].fontId;
 					var option = document.createElement('option');
-					option.innerText = font;
+					option.value = font;
+					option.innerText = font === 'Sans-serif' ? 'Системный' : font;
 					if (font == getConfig('font'))
 						option.selected = 'selected';
 					select.appendChild(option);
@@ -1991,7 +2009,7 @@ function initSettings() {
 
 // show options panel
 function showOptions(show) {
-	document.getElementById('options').style.display = show ? 'block' : 'none';
+	document.getElementById('options').classList.toggle('open', show);
 	if (show) {
 		if (!settingsInitialized)
 			initSettings();
@@ -2030,6 +2048,9 @@ document.addEventListener('mousedown', function(event) {
 });
 document.addEventListener('keydown', function(event) {
 	document.body.classList.remove('hide-focus');
+	// Esc закрывает настройки, если поверх нет диалога
+	if (event.key === 'Escape' && settingsInitialized && !document.getElementById('dialog').open)
+		showOptions(false);
 });
 
 window.onresize = function(event) {

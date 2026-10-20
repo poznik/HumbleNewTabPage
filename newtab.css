@@ -21,6 +21,9 @@
 	--pad: calc(var(--row) * .375);
 	--font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, "Helvetica Neue", sans-serif;
 	--chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 2.5 8 6l-3.5 3.5'/%3E%3C/svg%3E");
+	--chevron-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23888' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E");
+	--cross: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M2.5 2.5l7 7m0-7-7 7'/%3E%3C/svg%3E");
+	--revert: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 3.5v3.5h3.5'/%3E%3Cpath d='M3.4 7A5 5 0 1 1 4.6 11.6'/%3E%3C/svg%3E");
 }
 body {
 	background-color: var(--bg);
@@ -378,69 +381,13 @@ body {
 .hide-focus :focus {
 	outline: none;
 }
-#options, #options_button {
-	position: absolute;
-	top: 0;
-	right: 0;
-}
-#options {
-	display: none;
-	font-size: 1.4em;
-	color: #000;
-	border: solid #999;
-	border-width: 0 0 1px 1px;
-	border-bottom-left-radius: 3px;
-	box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
-	min-width: 32em;
-	min-height: 10em;
-}
-#options_nav {
-	position: absolute;
-	width: 10em;
-	top: -1px;
-	bottom: 0;
-	background-color: #EEE;
-	list-style: none;
-	margin: 0;
-	padding: 0;
-	border-right: solid 1px #ccc;
-}
-#options_nav a {
-	display: block;
-	padding: 1em 2em;
-	text-decoration: none;
-	color: inherit;
-	border: solid transparent;
-	border-width: 1px 0;
-	cursor: pointer;
-}
-#options_nav a:hover {
-	background-color: #E4F4FF;
-	outline: solid thin #57B0FF;
-}
-#options_nav a.current {
-	color: #000;
-	background-color: #FAFAFA;
-	border-color: #CCC;
-	margin-right: -1px;
-	outline: none;
-}
-#options .section {
-	margin-left: 10em;
-	margin-top: -1px;
-	padding: 1px 0;
-	background-color: #FAFAFA;
-	display: none;
-}
-#options .section.current {
-	display: block;
-}
 #options_button {
+	position: absolute;
 	top: 12px;
 	right: 12px;
-	background: transparent no-repeat center center;
 	width: 32px;
 	height: 32px;
+	background: transparent no-repeat center center;
 	border-radius: 8px;
 	opacity: 0.55;
 	cursor: pointer;
@@ -450,88 +397,435 @@ body {
 	opacity: 1;
 	background-color: color-mix(in srgb, var(--text) 7%, transparent);
 }
-#options_close_button {
-	color: #000;
-	text-align: center;
-	text-decoration: none;
-	font-size: 1.4em;
-	position: absolute;
-	top: 0;
-	right: 0;
-	display: block;
-	width: 32px;
-	height: 32px;
-	line-height: 32px;
-	cursor: pointer;
-}
-legend {
-	color: #888;
-}
-fieldset {
-	border: none;
-	margin: 1em .5em 1em 2em;
-	padding: .5em 0 0;
-}
-label {
-	display: block;
-	font-size: 0.85em;
-	text-align: right;
-	margin: 0 0 .1em 1.4em;
-	clear: left;
-}
-label span {
-	float: left;
-	text-align: left;
-	line-height: 1.9;
-}
-input, select, textarea, .revert {
-	width: 9em;
-	margin: 0 0 0 .5em;
+/* панель настроек: плавающая карточка справа, слева разделы, справа группы строк */
+#options {
+	--field: color-mix(in srgb, var(--text) 4%, var(--card));
+	--field-edge: color-mix(in srgb, var(--text) 16%, var(--card));
+	--toggle-off: color-mix(in srgb, var(--text) 22%, var(--card));
+	position: fixed;
+	top: 12px;
+	right: 12px;
+	z-index: 20;
+	display: none;
+	grid-template-columns: 184px minmax(0, 1fr);
+	width: min(720px, calc(100vw - 24px));
+	height: min(680px, calc(100vh - 24px));
 	box-sizing: border-box;
-	vertical-align: middle;
+	overflow: hidden;
+	font-family: var(--font);
+	font-size: 13px;
+	line-height: 1.35;
+	color: var(--text);
+	background-color: color-mix(in srgb, var(--bg) 90%, transparent);
+	-webkit-backdrop-filter: blur(24px) saturate(1.4);
+	backdrop-filter: blur(24px) saturate(1.4);
+	border: 1px solid var(--edge);
+	border-radius: 16px;
+	box-shadow: 0 24px 64px rgba(0, 0, 0, .18), 0 2px 8px rgba(0, 0, 0, .08);
+	-webkit-font-smoothing: antialiased;
 }
-textarea {
-	width: 20em;
-	height: 16em;
-	font-size: 1.1em;
-	font-family: monospace;
-	vertical-align: top;
-	float: left;
+#options.open {
+	display: grid;
+	animation: options-in .18s ease-out;
 }
-input.color {
-	width: 6em;
-	font-family: monospace;
+@keyframes options-in {
+	from { opacity: 0; transform: translateY(-6px) scale(.985); }
 }
-input[type="checkbox"] {
-	width: 1.2em;
+@media (prefers-reduced-motion: reduce) {
+	#options.open { animation: none; }
 }
-input[type=color] {
-	width: 3em;
+#options_side {
+	padding: 18px 10px;
+	overflow-y: auto;
+	background-color: color-mix(in srgb, var(--text) 3%, transparent);
+	border-right: 1px solid var(--edge);
+}
+#options_side h2 {
+	margin: 2px 10px 14px;
+	font-size: 15px;
+	font-weight: 650;
+	letter-spacing: -.01em;
+}
+#options_nav {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
 	margin: 0;
+	padding: 0;
+	list-style: none;
 }
-input[type="color"]::-webkit-color-swatch-wrapper {
-	padding: 0 1px;
+#options_nav a {
+	display: block;
+	padding: 7px 10px;
+	color: inherit;
+	text-decoration: none;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background-color .15s;
 }
-input[type="file"]::-webkit-file-upload-button {
+#options_nav a:hover {
+	background-color: color-mix(in srgb, var(--text) 6%, transparent);
+}
+#options_nav a.current {
+	font-weight: 600;
+	background-color: color-mix(in srgb, var(--accent) 15%, var(--card));
+}
+#options_close_button {
+	position: absolute;
+	top: 14px;
+	right: 14px;
+	z-index: 1;
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	background-color: color-mix(in srgb, var(--text) 7%, transparent);
+	cursor: pointer;
+	transition: background-color .15s;
+}
+#options_close_button::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background-color: var(--muted);
+	-webkit-mask: var(--cross) center / 12px no-repeat;
+	mask: var(--cross) center / 12px no-repeat;
+}
+#options_close_button:hover {
+	background-color: color-mix(in srgb, var(--text) 13%, transparent);
+}
+#options_close_button:hover::before {
+	background-color: var(--text);
+}
+#options_body {
+	position: relative;
+	overflow-y: auto;
+	padding: 20px 24px 28px;
+	overscroll-behavior: contain;
+}
+#options .section {
+	display: none;
+}
+#options .section.current {
+	display: block;
+}
+#options h3 {
+	margin: 2px 44px 18px 2px;
+	font-size: 20px;
+	font-weight: 650;
+	letter-spacing: -.015em;
+}
+#options fieldset {
+	min-width: 0;
+	margin: 0 0 22px;
+	padding: 0;
+	border: none;
+}
+#options legend {
+	float: left;
 	width: 100%;
+	padding: 0 14px 7px;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+	color: var(--muted);
 }
-.subopt {
-	margin: 0 0 .8em 2.5em;
+#options .rows {
+	clear: both;
+	overflow: hidden;
+	background-color: var(--card);
+	border: 1px solid var(--edge);
+	border-radius: 12px;
 }
-.subopt input {
-	width: 4em;
+#options_show_bookmarks {
+	display: contents;
 }
-.revert {
-	display: inline-block;
-	width: 18px;
-	height: 16px;
-	opacity: .5;
-	background-image: -webkit-image-set(url("icons/revert.png") 1x, url("icons/revert@2x.png") 2x);
-	background-size: 100%;
+#options .hint {
+	margin: 7px 14px 0;
+	font-size: 12px;
+	color: var(--muted);
+}
+
+/* строка настройки: подпись слева, справа сброс и поле */
+#options label {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 44px;
+	box-sizing: border-box;
+	margin-top: -1px;
+	padding: 6px 12px 6px 14px;
+	border-top: 1px solid var(--line);
+}
+#options label > span {
+	flex: 1;
+	min-width: 0;
+	order: 0;
+}
+#options label > .revert {
+	order: 1;
+}
+#options label > :is(input, select) {
+	order: 2;
+}
+#options label > input.color {
+	order: 3;
+}
+/* «Сколько показывать» — продолжение строки выше, видна, пока пункт включён */
+#options label.subopt {
+	min-height: 36px;
+	margin-top: -10px;
+	padding-left: 30px;
+	border-top-color: transparent;
+	color: var(--muted);
+}
+#options label:has(> input[type=checkbox]:not(:checked)) + .subopt {
+	display: none;
+}
+
+/* поля */
+#options :is(input, select, textarea) {
+	box-sizing: border-box;
+	margin: 0;
+	font: inherit;
+	color: inherit;
+}
+#options :where(input[type=text], input[type=url], input[type=number], select) {
+	height: 30px;
+	padding: 0 10px;
+	background-color: var(--field);
+	border: 1px solid var(--field-edge);
+	border-radius: 7px;
+	transition: border-color .15s, box-shadow .15s;
+}
+#options :is(input, select, textarea):focus-visible {
+	outline: none;
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+#options :where(input[type=text], input[type=url]) {
+	width: 220px;
+}
+#options input[type=number] {
+	width: 72px;
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+#options select {
+	-webkit-appearance: none;
+	appearance: none;
+	max-width: 220px;
+	padding-right: 28px;
+	background-image: var(--chevron-down);
+	background-repeat: no-repeat;
+	background-position: right 9px center;
+	background-size: 10px;
 	cursor: pointer;
 }
-.revert:hover {
+#options input.color {
+	width: 92px;
+	font-family: ui-monospace, "SF Mono", Menlo, monospace;
+	font-size: 12px;
+	text-transform: lowercase;
+}
+
+/* переключатель вместо флажка */
+#options input[type=checkbox] {
+	-webkit-appearance: none;
+	appearance: none;
+	position: relative;
+	flex: none;
+	width: 36px;
+	height: 22px;
+	border-radius: 11px;
+	background-color: var(--toggle-off);
+	cursor: pointer;
+	transition: background-color .18s;
+}
+#options input[type=checkbox]::before {
+	content: '';
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	background-color: #fff;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+	transition: transform .18s ease-out;
+}
+#options input[type=checkbox]:checked {
+	background-color: var(--accent);
+}
+#options input[type=checkbox]:checked::before {
+	transform: translateX(14px);
+}
+#options input[type=checkbox]:focus-visible {
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* ползунок */
+#options input[type=range] {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 180px;
+	height: 22px;
+	background: transparent;
+	cursor: pointer;
+}
+#options input[type=range]::-webkit-slider-runnable-track {
+	height: 4px;
+	border-radius: 2px;
+	background-color: var(--toggle-off);
+}
+#options input[type=range]::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	width: 18px;
+	height: 18px;
+	margin-top: -7px;
+	border-radius: 50%;
+	background-color: #fff;
+	border: 1px solid rgba(0, 0, 0, .08);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+	transition: transform .12s;
+}
+#options input[type=range]:active::-webkit-slider-thumb {
+	transform: scale(1.1);
+}
+#options input[type=range]:focus-visible {
+	box-shadow: none;
+}
+#options input[type=range]:focus-visible::-webkit-slider-thumb {
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent), 0 1px 3px rgba(0, 0, 0, .3);
+}
+
+/* образец цвета — круг */
+#options input[type=color] {
+	-webkit-appearance: none;
+	appearance: none;
+	flex: none;
+	width: 26px;
+	height: 26px;
+	padding: 0;
+	background: none;
+	border: none;
+	border-radius: 50%;
+	cursor: pointer;
+}
+#options input[type=color]::-webkit-color-swatch-wrapper {
+	padding: 0;
+}
+#options input[type=color]::-webkit-color-swatch {
+	border: 1px solid color-mix(in srgb, var(--text) 20%, transparent);
+	border-radius: 50%;
+}
+
+/* файл */
+#options input[type=file] {
+	max-width: 260px;
+	font-size: 12px;
+	color: var(--muted);
+}
+#options input[type=file]::file-selector-button {
+	margin-right: 10px;
+	padding: 6px 12px;
+	font: inherit;
+	font-weight: 500;
+	color: var(--text);
+	background-color: var(--field);
+	border: 1px solid var(--field-edge);
+	border-radius: 7px;
+	cursor: pointer;
+}
+#options input[type=file]::file-selector-button:hover {
+	background-color: color-mix(in srgb, var(--text) 8%, var(--card));
+}
+
+/* многострочные поля занимают всю группу */
+#options label:has(> textarea) {
+	display: block;
+	position: relative;
+	padding: 0;
+}
+#options textarea {
+	display: block;
+	width: 100%;
+	height: 220px;
+	padding: 12px 14px;
+	font-family: ui-monospace, "SF Mono", Menlo, monospace;
+	font-size: 12px;
+	line-height: 1.5;
+	background: transparent;
+	border: none;
+	resize: vertical;
+	user-select: text;
+}
+#options textarea:focus-visible {
+	box-shadow: inset 0 0 0 2px var(--accent);
+	border-radius: 12px;
+}
+#options textarea[readonly] {
+	color: var(--muted);
+	background-color: var(--soft);
+}
+#options label:has(> textarea) > .revert {
+	position: absolute;
+	top: 10px;
+	right: 12px;
+}
+
+/* сброс к значению по умолчанию */
+#options .revert {
+	display: block;
+	flex: none;
+	width: 16px;
+	height: 16px;
+	background-color: var(--muted);
+	-webkit-mask: var(--revert) center / contain no-repeat;
+	mask: var(--revert) center / contain no-repeat;
+	opacity: .6;
+	cursor: pointer;
+	transition: opacity .15s, background-color .15s;
+}
+#options .revert:hover {
 	opacity: 1;
+	background-color: var(--accent);
+}
+
+/* узкое окно: разделы — строкой сверху */
+@media (max-width: 600px) {
+	#options {
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-rows: auto minmax(0, 1fr);
+	}
+	#options_side {
+		padding: 10px 52px 10px 10px;
+		border-right: none;
+		border-bottom: 1px solid var(--edge);
+	}
+	#options_side h2 {
+		display: none;
+	}
+	#options_nav {
+		flex-direction: row;
+		overflow-x: auto;
+	}
+	#options_nav a {
+		white-space: nowrap;
+	}
+	#options_close_button {
+		top: 10px;
+		right: 10px;
+	}
+	#options_body {
+		padding: 16px;
+	}
+	#options :where(input[type=text], input[type=url]) {
+		width: 150px;
+	}
+	#options input[type=range] {
+		width: 120px;
+	}
 }
 .folder .icon {
 	background-image: -webkit-image-set(url("icons/folder.png") 1x, url("icons/folder@2x.png") 2x);

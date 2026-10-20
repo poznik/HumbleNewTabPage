@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="ru">
 <head>
 <meta charset="utf-8" />
 <title>New Tab</title>
@@ -10,133 +10,170 @@
 <div id="texture" aria-hidden="true"></div>
 <div id="main">
 </div>
-<a id="options_button" title="Options" tabindex="0"></a>
-<div id="options">
-	<a id="options_close_button" title="Close" tabindex="0">&times;</a>
-	<ul id="options_nav">
-		<li><a class="current" tabindex="0">Settings</a></li>
-		<li><a tabindex="0">Appearance</a></li>
-		<li><a tabindex="0">Import/Export</a></li>
-		<li><a tabindex="0">Advanced</a></li>
-	</ul>
+<a id="options_button" title="Настройки" tabindex="0"></a>
+<div id="options" role="dialog" aria-label="Настройки">
+	<nav id="options_side">
+		<h2>Настройки</h2>
+		<ul id="options_nav">
+			<li><a class="current" tabindex="0">Основное</a></li>
+			<li><a tabindex="0">Оформление</a></li>
+			<li><a tabindex="0">Импорт и экспорт</a></li>
+			<li><a tabindex="0">Дополнительно</a></li>
+		</ul>
+	</nav>
+	<a id="options_close_button" title="Закрыть" tabindex="0"></a>
+	<div id="options_body">
 	<div class="section current">
+	<h3>Основное</h3>
 	<fieldset>
-		<legend>Settings</legend>
-		<label><span>Open links in</span><select id="options_newtab">
-			<option value="0">Current tab</option>
-			<option value="1">New tab</option>
-			<option value="2">New tab (background)</option>
+		<legend>Поведение</legend>
+		<div class="rows">
+		<label><span>Открывать ссылки</span><select id="options_newtab">
+			<option value="0">в текущей вкладке</option>
+			<option value="1">в новой вкладке</option>
+			<option value="2">в фоновой вкладке</option>
 		</select></label>
-		<label><span>Lock columns</span><input id="options_lock" type="checkbox"/></label>
-		<label><span>Remember open folders</span><input id="options_remember_open" type="checkbox"/></label>
-		<label><span>Auto-close folders</span><input id="options_auto_close" type="checkbox"/></label>
-		<label><span>Show top-level folders</span><input id="options_show_root" type="checkbox"/></label>
-		<label><span>Hide options button</span><input id="options_hide_options" type="checkbox"/></label>
+		<label><span>Закрепить колонки</span><input id="options_lock" type="checkbox"/></label>
+		<label><span>Запоминать открытые папки</span><input id="options_remember_open" type="checkbox"/></label>
+		<label><span>Сворачивать вложенные папки вместе с родительской</span><input id="options_auto_close" type="checkbox"/></label>
+		<label><span>Показывать папки верхнего уровня</span><input id="options_show_root" type="checkbox"/></label>
+		<label><span>Скрыть кнопку настроек</span><input id="options_hide_options" type="checkbox"/></label>
+		</div>
 	</fieldset>
 	<fieldset>
-		<legend>Content</legend>
-		<label><span>Apps</span><input id="options_show_apps" type="checkbox"/></label>
+		<legend>Содержимое</legend>
+		<div class="rows">
+		<label><span>Приложения</span><input id="options_show_apps" type="checkbox"/></label>
 		<div id="options_show_bookmarks"></div>
-		<label><span>Most visited</span><input id="options_show_top" type="checkbox"/></label>
-		<label class="subopt"><span>Number of items</span><input id="options_number_top" type="number" min="1" max="10"/></label>
-		<label><span>Recent bookmarks</span><input id="options_show_recent" type="checkbox"/></label>
-		<label class="subopt"><span>Number of items</span><input id="options_number_recent" type="number" min="1" max="1000"/></label>
-		<label><span>Recently closed</span><input id="options_show_closed" type="checkbox"/></label>
-		<label class="subopt"><span>Number of items</span><input id="options_number_closed" type="number" min="1" max="25"/></label>
-		<label><span>Other devices</span><input id="options_show_devices" type="checkbox"/></label>
+		<label><span>Часто посещаемые</span><input id="options_show_top" type="checkbox"/></label>
+		<label class="subopt"><span>Сколько показывать</span><input id="options_number_top" type="number" min="1" max="10"/></label>
+		<label><span>Недавние закладки</span><input id="options_show_recent" type="checkbox"/></label>
+		<label class="subopt"><span>Сколько показывать</span><input id="options_number_recent" type="number" min="1" max="1000"/></label>
+		<label><span>Недавно закрытые</span><input id="options_show_closed" type="checkbox"/></label>
+		<label class="subopt"><span>Сколько показывать</span><input id="options_number_closed" type="number" min="1" max="25"/></label>
+		<label><span>Другие устройства</span><input id="options_show_devices" type="checkbox"/></label>
+		</div>
 	</fieldset>
 	</div><div class="section">
+	<h3>Оформление</h3>
 	<fieldset>
-		<legend>Font</legend>
-		<label><span>Font</span><input id="options_font" type="text"/></label>
-		<label><span>Size</span><input id="options_font_size" type="number" min="6" max="100"/></label>
-		<label><span>Weight</span><select id="options_font_weight">
-			<option value="100">Thin</option>
-			<option value="200">Extra Light</option>
-			<option value="300">Light</option>
-			<option value="400">Regular</option>
-			<option value="500">Medium</option>
-			<option value="600">Semi Bold</option>
-			<option value="700">Bold</option>
-			<option value="800">Extra Bold</option>
-			<option value="900">Heavy</option>
+		<legend>Шрифт</legend>
+		<div class="rows">
+		<label><span>Шрифт</span><input id="options_font" type="text"/></label>
+		<label><span>Размер</span><input id="options_font_size" type="number" min="6" max="100"/></label>
+		<label><span>Насыщенность</span><select id="options_font_weight">
+			<option value="100">Тонкий</option>
+			<option value="200">Сверхсветлый</option>
+			<option value="300">Светлый</option>
+			<option value="400">Обычный</option>
+			<option value="500">Средний</option>
+			<option value="600">Полужирный</option>
+			<option value="700">Жирный</option>
+			<option value="800">Сверхжирный</option>
+			<option value="900">Чёрный</option>
 		</select></label>
+		</div>
 	</fieldset>
 	<fieldset>
-		<legend>Colors</legend>
-		<label><span>Theme</span><select id="options_theme"></select></label>
-		<label><span>Text</span><input id="options_font_color" type="color"/></label>
-		<label><span>Background</span><input id="options_background_color" type="color"/></label>
-		<label><span>Cards</span><input id="options_card_color" type="color"/></label>
-		<label><span>Accent</span><input id="options_accent_color" type="color"/></label>
-		<label><span>Highlight</span><input id="options_highlight_color" type="color"/></label>
-		<label><span>Highlight text</span><input id="options_highlight_font_color" type="color"/></label>
-		<label><span>Shadow</span><input id="options_shadow_color" type="color"/></label>
+		<legend>Цвета</legend>
+		<div class="rows">
+		<label><span>Тема</span><select id="options_theme"></select></label>
+		<label><span>Текст</span><input id="options_font_color" type="color"/></label>
+		<label><span>Фон</span><input id="options_background_color" type="color"/></label>
+		<label><span>Карточки</span><input id="options_card_color" type="color"/></label>
+		<label><span>Акцент</span><input id="options_accent_color" type="color"/></label>
+		<label><span>Подсветка</span><input id="options_highlight_color" type="color"/></label>
+		<label><span>Текст подсветки</span><input id="options_highlight_font_color" type="color"/></label>
+		<label><span>Тень</span><input id="options_shadow_color" type="color"/></label>
+		</div>
 	</fieldset>
 	<fieldset>
-		<legend>Layout</legend>
-		<label><span>Item spacing</span><input id="options_spacing" type="range" min="0" max="2" step="0.001"/></label>
-		<label><span>Top margin</span><input id="options_v_margin" type="range" min="0" max="2" step="0.001"/></label>
-		<label><span>Column width</span><input id="options_width" type="range" min="0" max="2" step="0.001"/></label>
-		<label><span>Align</span><input id="options_h_pos" type="range" min="0" max="2" step="0.001"/></label>
-		<label><span>Scale with window size</span><input id="options_auto_scale" type="checkbox"/></label>
+		<legend>Раскладка</legend>
+		<div class="rows">
+		<label><span>Высота строк</span><input id="options_spacing" type="range" min="0" max="2" step="0.001"/></label>
+		<label><span>Отступ сверху</span><input id="options_v_margin" type="range" min="0" max="2" step="0.001"/></label>
+		<label><span>Ширина колонок</span><input id="options_width" type="range" min="0" max="2" step="0.001"/></label>
+		<label><span>Сдвиг по горизонтали</span><input id="options_h_pos" type="range" min="0" max="2" step="0.001"/></label>
+		<label><span>Масштабировать по размеру окна</span><input id="options_auto_scale" type="checkbox"/></label>
+		</div>
 	</fieldset>
 	<fieldset>
-		<legend>Highlight</legend>
-		<label><span>Shadow size</span><input id="options_shadow_blur" type="range" min="0" max="2" step="0.001"/></label>
-		<label><span>Corner roundness</span><input id="options_highlight_round" type="range" min="0" max="2" step="0.001"/></label>
+		<legend>Подсветка</legend>
+		<div class="rows">
+		<label><span>Размер тени</span><input id="options_shadow_blur" type="range" min="0" max="2" step="0.001"/></label>
+		<label><span>Скругление углов</span><input id="options_highlight_round" type="range" min="0" max="2" step="0.001"/></label>
+		</div>
 	</fieldset>
 	<fieldset>
-		<legend>Animation</legend>
-		<label><span>Highlight fade time</span><input id="options_fade" type="range" min="0" max="2" step="0.001"/></label>
-		<label><span>Folder open time</span><input id="options_slide" type="range" min="0" max="2" step="0.001"/></label>
-		<label><span>Symbols in background</span><input id="options_texture" type="checkbox"/></label>
+		<legend>Анимация</legend>
+		<div class="rows">
+		<label><span>Затухание подсветки</span><input id="options_fade" type="range" min="0" max="2" step="0.001"/></label>
+		<label><span>Раскрытие папок</span><input id="options_slide" type="range" min="0" max="2" step="0.001"/></label>
+		<label><span>Символы на фоне</span><input id="options_texture" type="checkbox"/></label>
+		</div>
 	</fieldset>
 	<fieldset>
-		<legend>Background image</legend>
-		<label><span>URL</span><input id="options_background_image" type="url" placeholder="http://"/></label>
-		<label><span>Local file</span><input id="options_background_image_file" type="file" accept="image/*"/></label>
-		<label><span>Size</span><select id="options_background_size">
-			<option value="auto">Original</option>
-			<option value="cover">Full</option>
-			<option value="contain">Best fit</option>
+		<legend>Фоновое изображение</legend>
+		<div class="rows">
+		<label><span>Адрес</span><input id="options_background_image" type="url" placeholder="https://…"/></label>
+		<label><span>Файл</span><input id="options_background_image_file" type="file" accept="image/*"/></label>
+		<label><span>Размер</span><select id="options_background_size">
+			<option value="auto">Исходный</option>
+			<option value="cover">Заполнить</option>
+			<option value="contain">Вписать</option>
 		</select></label>
-		<label><span>Align</span><select id="options_background_align">
-			<option value="left top">Top left</option>
-			<option value="top">Top</option>
-			<option value="right top">Top right</option>
-			<option value="left">Left</option>
-			<option value="center">Center</option>
-			<option value="right">Right</option>
-			<option value="left bottom">Bottom left</option>
-			<option value="bottom">Bottom</option>
-			<option value="right bottom">Bottom right</option>
+		<label><span>Положение</span><select id="options_background_align">
+			<option value="left top">Сверху слева</option>
+			<option value="top">Сверху</option>
+			<option value="right top">Сверху справа</option>
+			<option value="left">Слева</option>
+			<option value="center">По центру</option>
+			<option value="right">Справа</option>
+			<option value="left bottom">Снизу слева</option>
+			<option value="bottom">Снизу</option>
+			<option value="right bottom">Снизу справа</option>
 		</select></label>
-		<label><span>Tiling</span><select id="options_background_repeat">
-			<option value="repeat">Tile</option>
-			<option value="repeat-x">Horizontal</option>
-			<option value="repeat-y">Vertical</option>
-			<option value="no-repeat">None</option>
+		<label><span>Повтор</span><select id="options_background_repeat">
+			<option value="repeat">Плиткой</option>
+			<option value="repeat-x">По горизонтали</option>
+			<option value="repeat-y">По вертикали</option>
+			<option value="no-repeat">Без повтора</option>
 		</select></label>
+		</div>
 	</fieldset>
 	</div><div class="section">
+	<h3>Импорт и экспорт</h3>
 	<fieldset>
-		<legend>Export Settings</legend>
+		<legend>Экспорт</legend>
+		<div class="rows">
 		<label><textarea id="options_export" readonly></textarea></label>
+		</div>
+		<p class="hint">Все настройки и раскладка колонок одной строкой JSON. Скопируйте её, чтобы перенести на другой компьютер.</p>
 	</fieldset>
 	<fieldset>
-		<legend>Import Settings</legend>
+		<legend>Импорт</legend>
+		<div class="rows">
 		<label><textarea id="options_import"></textarea></label>
+		</div>
+		<p class="hint">Вставьте строку из экспорта и щёлкните вне поля — настройки применятся сразу.</p>
 	</fieldset>
 	</div><div class="section">
+	<h3>Дополнительно</h3>
 	<fieldset>
-		<legend>Generated CSS</legend>
+		<legend>Свой CSS</legend>
+		<div class="rows">
+		<label><textarea id="options_css" spellcheck="false"></textarea></label>
+		</div>
+		<p class="hint">Подключается после всех стилей страницы и перекрывает их.</p>
+	</fieldset>
+	<fieldset>
+		<legend>CSS из настроек</legend>
+		<div class="rows">
 		<label><textarea id="all_css" readonly></textarea></label>
+		</div>
+		<p class="hint">Правила, которые сейчас задают настройки оформления. Только для чтения — удобно взять за основу своего CSS.</p>
 	</fieldset>
-	<fieldset>
-		<legend>Custom CSS</legend>
-		<label><textarea id="options_css"></textarea></label>
-	</fieldset>
+	</div>
 	</div>
 </div>
 <dialog id="dialog">
